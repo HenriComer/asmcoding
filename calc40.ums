@@ -95,8 +95,7 @@ waiting_with_character:
         if (r1 <s 0) goto done using r5 # check if we've reached EOF
         
         r5 := jumptable + r1
-        push r1 on stack r2  # pushing the input onto main stack (needed
-                                # if it's a command)
+        # push r1 on stack r2             # pushing the input onto main stack
         r5 := m[r0][r5]
 
         # goes to the correct digit/command
@@ -153,12 +152,12 @@ add:
         if (r6 <s r7) goto underflow2 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         # pop x
-        pop r4 off stack r3
+        pop r7 off stack r3
 
-        r4 := r4 + r5
-        push r4 on stack r3
+        r5 := r7 + r6
+        push r5 on stack r3
         goto waiting
 
 sub:
@@ -169,12 +168,12 @@ sub:
         if (r6 <s r7) goto underflow2 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         # pop x
-        pop r4 off stack r3
+        pop r7 off stack r3
 
-        r4 := r4 - r5
-        push r4 on stack r3
+        r5 := r7 - r6
+        push r5 on stack r3
         goto waiting
 
 mul:
@@ -185,12 +184,12 @@ mul:
         if (r6 <s r7) goto underflow2 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         # pop x
-        pop r4 off stack r3
+        pop r7 off stack r3
 
-        r4 := r4 * r5
-        push r4 on stack r3
+        r5 := r7 * r6
+        push r5 on stack r3
         goto waiting
 
 div:
@@ -201,12 +200,17 @@ div:
         if (r6 <s r7) goto underflow2 using r5
 
         # pop y
-        pop r5 off stack r3
-        # pop x
-        pop r4 off stack r3
+        pop r6 off stack r3
 
-        r4 := r4 / r5 # need to handle divide by zero
-        push r4 on stack r3
+        push r6 on stack r2
+        if (r6 == r0) goto div_by_zero using r5        # checking if denom is 0
+        pop r6 off stack r2
+
+        # pop x
+        pop r7 off stack r3
+
+        r5 := r7 / r6
+        push r5 on stack r3
         goto waiting
 
 or:
@@ -217,12 +221,12 @@ or:
         if (r6 <s r7) goto underflow2 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         # pop x
-        pop r4 off stack r3
+        pop r7 off stack r3
 
-        r4 := r4 | r5
-        push r4 on stack r3
+        r5 := r7 | r6
+        push r5 on stack r3
         goto waiting
 
 and:
@@ -233,12 +237,12 @@ and:
         if (r6 <s r7) goto underflow2 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         # pop x
-        pop r4 off stack r3
+        pop r7 off stack r3
 
-        r4 := r4 & r5
-        push r4 on stack r3
+        r5 := r7 & r6
+        push r5 on stack r3
         goto waiting
 
 c:
@@ -249,10 +253,10 @@ c:
         if (r6 <s r7) goto underflow1 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         
-        r5 := - r5
-        push r5 on stack r3
+        r6 := - r6
+        push r6 on stack r3
         goto waiting
 
 not:
@@ -263,10 +267,10 @@ not:
         if (r6 <s r7) goto underflow1 using r5
 
         # pop y
-        pop r5 off stack r3
+        pop r6 off stack r3
         
-        r5 := ~ r5
-        push r5 on stack r3
+        r6 := ~ r6
+        push r6 on stack r3
         goto waiting
 
 swap: 
@@ -289,8 +293,8 @@ dup:
         r7 := 1
         if (r6 <s r7) goto underflow1
 
-        r4 := m[r0][r3]
-        push r4 on stack r3
+        r5 := m[r0][r3]
+        push r5 on stack r3
         goto waiting
 
 pop_stack:
@@ -306,4 +310,13 @@ pop_stack:
 zero:
         output "In zero\n"
         r3 := valstack_end
+        goto waiting
+
+div_by_zero:
+        output "Division by zero\n"
+        r6 := m[r0][r2 + 0]
+        push r6 on stack r3     # putting value back onto the value stack
+
+        pop stack r2
+
         goto waiting
