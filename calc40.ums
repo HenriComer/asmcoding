@@ -54,7 +54,6 @@ digit_init_done:
 
         goto r1
 
-
 .section text
 
 has:
@@ -95,35 +94,40 @@ waiting:
 
 waiting_with_character:
 
-        if (r1 <s 0) goto done using r5
+        if (r1 <s 0) goto done using r5 # check if we've reached EOF
         
         r5 := jumptable + r1
-        push r1 on stack r2
+        push r1 on stack r2  # pushing the input onto main stack (needed
+                                # if it's a command)
         r5 := m[r0][r5]
 
-        # goes to the digit which pushes onto the value stack goes to entering stage
+        # goes to the correct digit/command
         goto r5 
 
 entering:
         r1 := input()
-        if (r1 <s 0) goto done using r5
+        if (r1 <s 0) goto done using r5                     # checking EOF
+
+        # checking to see if we get another digit to combine
         r6 := '9'
         if (r1 >s r6) goto waiting_with_character using r5
+
         r7 := 1
-        push r7 on stack r2
+        push r7 on stack r2             # push 1 onto main stack?
         
+        # combining with most recent digit on the value stack
         pop r5 off stack r3
         r5 := r5 * 10
         r5 := r5 + r1
         r5 := r5 - '0'
-        push r5 on stack r3
+        push r5 on stack r3             # pushing the new digit onto the stack
         goto entering
         
 
 digit:
         r6 := m[r0][r2 + 0]             # getting the input
         push r6 on stack r3             # pushing on value stack
-        pop stack r2                # pops off main stack
+        pop stack r2                # pops digit off main stack
         goto entering
 
 done:
