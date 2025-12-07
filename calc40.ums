@@ -1,7 +1,7 @@
 # calc40.ums
 
 .section data
-        .section vstk
+.section vstk
         .space 10000
 valstack_end:
 
@@ -15,7 +15,6 @@ jumptable:
 
 init_calc:
         r3 := valstack_end
-init_jumptable:
         r4 := 0
 init_loop:
         r6 := 256
@@ -57,7 +56,7 @@ digit_init_done:
 
 .section text
 
-has:
+has: #hmmmmmm
         push r1 on stack r2
         r6 := valstack_end
         r6 := r6 - r3
@@ -66,14 +65,13 @@ has:
         pop r1 off stack r2
         goto r1
 
-depth_err:
-        output "Error: Stack underflow Stack underflow---expected at least "
-        output r7
-        output " element"
-        r6 := 1
-        if (r7 == r6) goto print_non_plural using r5
-        output "s\n"
-        halt
+underflow1:
+        output "Stack underflow---expected at least 1 element\n"
+        goto waiting
+
+underflow2:
+        output "Stack underflow---expected at least 2 elements\n"
+        goto waiting
 
 
 print_non_plural:
@@ -145,48 +143,163 @@ newline:
 
 add:
         output "In add\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2 using r5
+
+        # pop y
+        pop r5 off stack r3
+        # pop x
+        pop r4 off stack r3
+
+        r4 := r4 + r5
+        push r4 on stack r3
         goto waiting
 
 sub:
         output "In sub\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2 using r5
+
+        # pop y
+        pop r5 off stack r3
+        # pop x
+        pop r4 off stack r3
+
+        r4 := r4 - r5
+        push r4 on stack r3
         goto waiting
 
 mul:
         output "In mul\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2 using r5
+
+        # pop y
+        pop r5 off stack r3
+        # pop x
+        pop r4 off stack r3
+
+        r4 := r4 * r5
+        push r4 on stack r3
         goto waiting
 
 div:
         output "In div\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2 using r5
+
+        # pop y
+        pop r5 off stack r3
+        # pop x
+        pop r4 off stack r3
+
+        r4 := r4 / r5 # need to handle divide by zero
+        push r4 on stack r3
         goto waiting
 
 or:
         output "In or\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2 using r5
+
+        # pop y
+        pop r5 off stack r3
+        # pop x
+        pop r4 off stack r3
+
+        r4 := r4 | r5
+        push r4 on stack r3
         goto waiting
 
 and:
         output "In and\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2 using r5
+
+        # pop y
+        pop r5 off stack r3
+        # pop x
+        pop r4 off stack r3
+
+        r4 := r4 & r5
+        push r4 on stack r3
         goto waiting
 
 c:
         output "In c\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 1
+        if (r6 <s r7) goto underflow1 using r5
+
+        # pop y
+        pop r5 off stack r3
+        
+        r5 := - r5
+        push r5 on stack r3
         goto waiting
 
 not:
         output "In not\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 1
+        if (r6 <s r7) goto underflow1 using r5
+
+        # pop y
+        pop r5 off stack r3
+        
+        r5 := ~ r5
+        push r5 on stack r3
         goto waiting
 
 swap: 
         output "In swap\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 2
+        if (r6 <s r7) goto underflow2
+
+        r5 := m[r0][r3]      # y
+        r4 := m[r0][r3 + 1]  # x
+        m[r0][r3]     := r4 # idk if we can do this
+        m[r0][r3 + 1] := r5
         goto waiting
 
 dup:
         output "In dup\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 1
+        if (r6 <s r7) goto underflow1
+
+        r4 := m[r0][r3]
+        push r4 on stack r3
         goto waiting
 
 pop_stack:
         output "In pop\n"
+        r6 := valstack_end
+        r6 := r6 - r3
+        r7 := 1
+        if (r6 <s r7) goto underflow1
+
+        pop stack r3
         goto waiting
 
 zero:
         output "In zero\n"
+        r3 := valstack_end
         goto waiting
