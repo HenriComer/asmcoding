@@ -1,0 +1,76 @@
+# printd.ums
+
+.section text
+.zero r0
+.temps r6, r7
+
+print_word:
+        
+        push r1 on stack r2
+        push r3 on stack r2
+        r3 := m[r0][r2 + 2]     # getting the first parameter
+
+        if (r3 == r0) goto print_zero using r5
+
+        if (r3 >s r0) goto print_minint_check using r5
+
+        if (r3 <s r0) goto print_negative using r5
+
+        goto print_positive
+
+print_zero:
+        output '0'
+        goto print_done
+
+
+print_minint:
+
+        output '-'
+        output '2'
+        output '1'
+        output '4'
+        output '7'
+        output '4'
+        output '8'
+        output '3'
+        output '6'
+        output '4'
+        output '8'
+        goto print_done
+
+print_minint_check:
+        r6 := m[r0][r2 + 2]
+        if (r6 <s r0) goto print_minint using r5
+
+print_positive:
+        r6 := 10
+        #base case
+        if (r3 <s r6) goto print_single_digit using r5
+
+        r5 := r3 / 10
+        push r3 on stack r2
+        push r5 on stack r2
+        goto print_word linking r1
+
+        pop stack r2
+        pop r3 off stack r2
+        r7 := r3 mod 10 using r5
+        
+        r7 := r7 + '0'
+        output r7
+        goto print_done
+        
+print_negative:
+        output '-'
+        r3 := - r3
+        goto print_positive
+
+print_single_digit:
+        r6 := r3 + '0'
+        output r6
+        goto print_done
+
+print_done:
+    pop r3 off stack r2
+    pop r5 off stack r2
+    goto r5

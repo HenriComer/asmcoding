@@ -1,0 +1,13 @@
+# callmain.ums
+
+.section init
+.zero r0
+.temps r6, r7
+callmain:
+        push r1 on stack r2
+        
+        goto main linking r1
+
+        pop r1 off stack r2
+        
+        halt

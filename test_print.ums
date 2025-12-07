@@ -1,0 +1,47 @@
+# test_print.ums
+.zero r0
+.temps r6, r7
+.section text
+
+main:
+    push r1 on stack r2
+
+    # Test 6: print minint
+    r5 := 0x80000000
+    push r5 on stack r2
+    goto print_word linking r1
+    output '\n'
+    
+    # Test 1: print 0
+    r5 := 0
+    push r5 on stack r2
+    goto print_word linking r1
+    output '\n'
+
+    # Test 2: print 7
+    r5 := 7
+    push r5 on stack r2
+    goto print_word linking r1
+    output '\n'
+
+    # Test 3: print 42
+    r5 := 42
+    push r5 on stack r2
+    goto print_word linking r1
+    output '\n'
+
+    # Test 4: print 12345
+    r5 := 12345
+    push r5 on stack r2
+    goto print_word linking r1
+    output '\n'
+
+    # Test 5: print negative number
+    r5 := -987
+    push r5 on stack r2
+    goto print_word linking r1
+    output '\n'
+
+    # Halt
+    r1 := 0
+    halt

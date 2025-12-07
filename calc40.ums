@@ -1,0 +1,192 @@
+# calc40.ums
+
+.section data
+        .section vstk
+        .space 10000
+valstack_end:
+
+.section rodata
+jumptable:
+        .space 256
+
+.section init
+.zero r0
+.temps r6, r7
+
+init_calc:
+        r3 := valstack_end
+init_jumptable:
+        r4 := 0
+init_loop:
+        r6 := 256
+        if (r4 >=s r6) goto init_jumptable_done using r5
+        r6 := jumptable
+        r6 := r6 + r4
+        m[r0][r6] := input_error
+        r4 := r4 + 1
+
+init_jumptable_done:
+        r4 := '0'
+digit_init_loop:
+        r6 := '9'
+        if (r4 >s r6) goto digit_init_done using r5
+        r6 := jumptable
+        r6 := r6 + r4
+        m[r0][r6] := digit
+        r4 := r4 + 1
+        goto digit_init_loop
+
+digit_init_done:
+        m[r0][jumptable + ' '] := waiting
+        m[r0][jumptable + '\n'] := newline
+        m[r0][jumptable + '+'] := add
+        m[r0][jumptable + '-'] := sub
+        m[r0][jumptable + '*'] := mul
+        m[r0][jumptable + '/'] := div
+        m[r0][jumptable + '|'] := or
+        m[r0][jumptable + '&'] := and
+        m[r0][jumptable + 'c'] := c
+        m[r0][jumptable + '~'] := not
+        m[r0][jumptable + 's'] := swap
+        m[r0][jumptable + 'd'] := dup
+        m[r0][jumptable + 'p'] := pop_stack
+        m[r0][jumptable + 'z'] := zero
+
+        goto r1
+
+
+.section text
+
+has:
+        push r1 on stack r2
+        r6 := valstack_end
+        r6 := r6 - r3
+        r4 := m[r0][r2 + 1]
+        if (r6 <s r4) goto depth_err using r5
+        pop r1 off stack r2
+        goto r1
+
+depth_err:
+        output "Error: Stack underflow Stack underflow---expected at least "
+        output r7
+        output " element"
+        r6 := 1
+        if (r7 == r6) goto print_non_plural using r5
+        output "s\n"
+        halt
+
+
+print_non_plural:
+        output '\n'
+        halt
+
+
+main:
+        push r1 on stack r2
+
+        goto waiting linking r1 # going to the main loop
+
+        pop r1 off stack r2
+        goto r1
+
+waiting:
+        push r1 on stack r2
+        r1 := input()
+
+waiting_with_character:
+
+        if (r1 <s 0) goto done using r5
+        
+        r5 := jumptable + r1
+        push r1 on stack r2
+        r5 := m[r0][r5]
+
+        # goes to the digit which pushes onto the value stack goes to entering stage
+        goto r5 
+
+entering:
+        r1 := input()
+        if (r1 <s 0) goto done using r5
+        r6 := '9'
+        if (r1 >s r6) goto waiting_with_character using r5
+        r7 := 1
+        push r7 on stack r2
+        
+        pop r5 off stack r3
+        r5 := r5 * 10
+        r5 := r5 + r1
+        r5 := r5 - '0'
+        push r5 on stack r3
+        goto entering
+        
+
+digit:
+        r6 := m[r0][r2 + 0]             # getting the input
+        push r6 on stack r3             # pushing on value stack
+        pop stack r2                # pops off main stack
+        goto entering
+
+done:
+        pop r5 off stack r2
+        goto r5
+
+input_error:
+        r6 := m[r0][r2 + 0]
+        output "Unknown character "
+        output r6
+        output " \n"
+        goto waiting
+
+
+# OPERATORS
+newline:
+        output "In newline\n"
+        goto waiting
+
+add:
+        output "In add\n"
+        goto waiting
+
+sub:
+        output "In sub\n"
+        goto waiting
+
+mul:
+        output "In mul\n"
+        goto waiting
+
+div:
+        output "In div\n"
+        goto waiting
+
+or:
+        output "In or\n"
+        goto waiting
+
+and:
+        output "In and\n"
+        goto waiting
+
+c:
+        output "In c\n"
+        goto waiting
+
+not:
+        output "In not\n"
+        goto waiting
+
+swap: 
+        output "In swap\n"
+        goto waiting
+
+dup:
+        output "In dup\n"
+        goto waiting
+
+pop_stack:
+        output "In pop\n"
+        goto waiting
+
+zero:
+        output "In zero\n"
+        goto waiting
