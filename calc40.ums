@@ -80,7 +80,6 @@ print_non_plural:
         output '\n'
         halt
 
-
 main:
 
         output "IN MAIN NOW\n"
@@ -93,7 +92,7 @@ main:
 
 waiting:
         output "In waiting\n"
-        push r1 on stack r2
+        # push r1 on stack r2 # I don't think we need this
         r1 := input()
 
 waiting_with_character:
@@ -112,9 +111,12 @@ entering:
         r1 := input()
         if (r1 <s 0) goto done using r5                     # checking EOF
 
+        r6 := '0'
+        if (r1 <s r6) goto waiting_with_character using r5  # if r1 holds the character it will fail
+
         # checking to see if we get another digit to combine
-        r6 := 9
-        if (r1 >s r6) goto waiting_with_character using r5
+        r6 := '9'
+        if (r1 >s r6) goto waiting_with_character using r5 # if r1 holds the character it will fail
         output "passed comparison\n"
         
         # combining with most recent digit on the value stack
@@ -124,11 +126,12 @@ entering:
         r5 := r5 - '0'
         push r5 on stack r3             # pushing the new digit onto the stack
         goto entering
-        
+                                        # maybe an issue with pushing the number in digit, but the character in entering
 digit:
         output "In digit\n"
+        r1 := r1 - '0'                  # converting char to int
         push r1 on stack r3             # pushing on value stack
-        pop stack r2                # pops digit off main stack
+        # pop stack r2                # pops digit off main stack
         goto entering
 
 done:
@@ -136,9 +139,9 @@ done:
         goto r5
 
 input_error:
-        r6 := m[r0][r2 + 0]
+        # r6 := m[r0][r2 + 0]
         output "Unknown character "
-        output r6
+        output r1 # I think we can just use r1 here
         output " \n"
         goto waiting
 
@@ -146,17 +149,17 @@ input_error:
 # OPERATORS
 newline:
         output "In newline\n"
+        push r4 on stack r2
 
-        r5 := r3
+        r4 := r3
 
 newline_loop:
 
         output "In newline_loop\n"
-        push r4 on stack r2
-        if (r5 == valstack_end) goto newline_end_loop using r4
-        pop r4 off stack r2
+        
+        if (r4 == valstack_end) goto newline_end_loop using r5
 
-        r7 := m[r0][r5]  # get stack element
+        r7 := m[r0][r4]  # get stack element
         
         output ">>> "
         push r1 on stack r2
@@ -166,7 +169,7 @@ newline_loop:
         pop r1 off stack r2
         output '\n'
 
-        r5 := r5 - 1
+        r4 := r4 + 1 # I think we need to add
         goto newline_loop
         
 newline_end_loop:
@@ -175,12 +178,16 @@ newline_end_loop:
 
 add:
         output "In add\n"
-        # r6 := valstack_end
-        # r6 := r6 - r3
-        # r5 := 2
-        # push r4 on stack r2
-        # if (r6 <s r5) goto underflow2 using r4
-        # pop r4 off stack r2
+        r6 := valstack_end
+        r6 := r6 - r3
+        output "Value stack size: "
+        push r6 on stack r2
+        goto print_word linking r1
+        pop stack r2
+        r5 := 2
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -308,7 +315,7 @@ not:
         r6 := r6 - r3
         r5 := 1
         push r4 on stack r2
-        if (r6 <s r5) goto underflow2 using r4
+        if (r6 <s r5) goto underflow1 using r4
         pop r4 off stack r2
 
         # pop y
@@ -339,7 +346,7 @@ dup:
         r6 := r6 - r3
         r5 := 1
         push r4 on stack r2
-        if (r6 <s r5) goto underflow2 using r4
+        if (r6 <s r5) goto underflow1 using r4
         pop r4 off stack r2
 
         r5 := m[r0][r3]
