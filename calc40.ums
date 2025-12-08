@@ -26,16 +26,30 @@ init_loop:
 
 init_jumptable_done:
         r4 := '0'
-digit_init_loop:
-        r6 := '9'
-        if (r4 >s r6) goto digit_init_done using r5
-        r6 := jumptable
-        r6 := r6 + r4
-        m[r0][r6] := digit
-        r4 := r4 + 1
-        goto digit_init_loop
+# digit_init_loop:
+#         output "In digit loop\n"
+#         r6 := '9'
+#         if (r4 >s r6) goto digit_init_done using r5
+#         r6 := jumptable
+#         r6 := r6 + r4
+#         m[r0][r6] := digit
+#         r4 := r4 + 1
+#         goto digit_init_loop
+
+digit_inits:
+        m[r0][jumptable + '0'] := digit
+        m[r0][jumptable + '1'] := digit
+        m[r0][jumptable + '2'] := digit
+        m[r0][jumptable + '3'] := digit
+        m[r0][jumptable + '4'] := digit
+        m[r0][jumptable + '5'] := digit
+        m[r0][jumptable + '6'] := digit
+        m[r0][jumptable + '7'] := digit
+        m[r0][jumptable + '8'] := digit
+        m[r0][jumptable + '9'] := digit
 
 digit_init_done:
+        output "IN DIGIT INIT\n"
         m[r0][jumptable + ' '] := waiting
         m[r0][jumptable + '\n'] := newline
         m[r0][jumptable + '+'] := add
@@ -51,18 +65,7 @@ digit_init_done:
         m[r0][jumptable + 'p'] := pop_stack
         m[r0][jumptable + 'z'] := zero
 
-        goto r1
-
 .section text
-
-has: #hmmmmmm
-        push r1 on stack r2
-        r6 := valstack_end
-        r6 := r6 - r3
-        r4 := m[r0][r2 + 1]
-        if (r6 <s r4) goto depth_err using r5
-        pop r1 off stack r2
-        goto r1
 
 underflow1:
         output "Stack underflow---expected at least 1 element\n"
@@ -79,6 +82,8 @@ print_non_plural:
 
 
 main:
+
+        output "IN MAIN NOW\n"
         push r1 on stack r2
 
         goto waiting linking r1 # going to the main loop
@@ -87,6 +92,7 @@ main:
         goto r1
 
 waiting:
+        output "In waiting\n"
         push r1 on stack r2
         r1 := input()
 
@@ -95,22 +101,21 @@ waiting_with_character:
         if (r1 <s 0) goto done using r5 # check if we've reached EOF
         
         r5 := jumptable + r1
-        # push r1 on stack r2             # pushing the input onto main stack
+
         r5 := m[r0][r5]
 
         # goes to the correct digit/command
         goto r5 
 
 entering:
+        output "In entering\n"
         r1 := input()
         if (r1 <s 0) goto done using r5                     # checking EOF
 
         # checking to see if we get another digit to combine
-        r6 := '9'
+        r6 := 9
         if (r1 >s r6) goto waiting_with_character using r5
-
-        r7 := 1
-        push r7 on stack r2             # push 1 onto main stack?
+        output "passed comparison\n"
         
         # combining with most recent digit on the value stack
         pop r5 off stack r3
@@ -120,10 +125,9 @@ entering:
         push r5 on stack r3             # pushing the new digit onto the stack
         goto entering
         
-
 digit:
-        r6 := m[r0][r2 + 0]             # getting the input
-        push r6 on stack r3             # pushing on value stack
+        output "In digit\n"
+        push r1 on stack r3             # pushing on value stack
         pop stack r2                # pops digit off main stack
         goto entering
 
@@ -142,14 +146,41 @@ input_error:
 # OPERATORS
 newline:
         output "In newline\n"
+
+        r5 := r3
+
+newline_loop:
+
+        output "In newline_loop\n"
+        push r4 on stack r2
+        if (r5 == valstack_end) goto newline_end_loop using r4
+        pop r4 off stack r2
+
+        r7 := m[r0][r5]  # get stack element
+        
+        output ">>> "
+        push r1 on stack r2
+        push r7 on stack r2
+        goto print_word linking r1
+        pop stack r2
+        pop r1 off stack r2
+        output '\n'
+
+        r5 := r5 - 1
+        goto newline_loop
+        
+newline_end_loop:
+        pop r4 off stack r2
         goto waiting
 
 add:
         output "In add\n"
-        r6 := valstack_end
-        r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2 using r5
+        # r6 := valstack_end
+        # r6 := r6 - r3
+        # r5 := 2
+        # push r4 on stack r2
+        # if (r6 <s r5) goto underflow2 using r4
+        # pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -162,10 +193,12 @@ add:
 
 sub:
         output "In sub\n"
-        r6 := valstack_end
-        r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2 using r5
+        # r6 := valstack_end
+        # r6 := r6 - r3
+        # r5 := 2
+        # push r4 on stack r2
+        # if (r6 <s r5) goto underflow2 using r4
+        # pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -180,8 +213,10 @@ mul:
         output "In mul\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2 using r5
+        r5 := 2
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -196,8 +231,10 @@ div:
         output "In div\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2 using r5
+        r5 := 2
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -217,8 +254,10 @@ or:
         output "In or\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2 using r5
+        r5 := 2
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -233,8 +272,10 @@ and:
         output "In and\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2 using r5
+        r5 := 2
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -249,8 +290,10 @@ c:
         output "In c\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 1
-        if (r6 <s r7) goto underflow1 using r5
+        r5 := 1
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow1 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -263,8 +306,10 @@ not:
         output "In not\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 1
-        if (r6 <s r7) goto underflow1 using r5
+        r5 := 1
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         # pop y
         pop r6 off stack r3
@@ -277,8 +322,10 @@ swap:
         output "In swap\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 2
-        if (r6 <s r7) goto underflow2
+        r5 := 2
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         r5 := m[r0][r3]      # y
         r4 := m[r0][r3 + 1]  # x
@@ -290,8 +337,10 @@ dup:
         output "In dup\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 1
-        if (r6 <s r7) goto underflow1
+        r5 := 1
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         r5 := m[r0][r3]
         push r5 on stack r3
@@ -301,8 +350,10 @@ pop_stack:
         output "In pop\n"
         r6 := valstack_end
         r6 := r6 - r3
-        r7 := 1
-        if (r6 <s r7) goto underflow1
+        r5 := 1
+        push r4 on stack r2
+        if (r6 <s r5) goto underflow2 using r4
+        pop r4 off stack r2
 
         pop stack r3
         goto waiting
